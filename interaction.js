@@ -14,7 +14,7 @@ document.getElementById('talkButton').addEventListener('click', () => {
         const transcript = event.results[0][0].transcript;
         console.log(`You said: ${transcript}`);
         
-        // Fetch response from your server
+        // Fetch response from server
         try {
             const response = await fetch('http://localhost:3000/chatgpt-response', {
                 method: 'POST',
@@ -23,8 +23,17 @@ document.getElementById('talkButton').addEventListener('click', () => {
                 },
                 body: JSON.stringify({ prompt: transcript }),
             });
+            
             const data = await response.json();
-            console.log(`AI said: ${data.response}`); // Log the AI response to the console
+            if (data.response) {
+                console.log(`AI said: ${data.response}`);
+
+                  // Use the Web Speech API to speak out the AI response
+                  const utterance = new SpeechSynthesisUtterance(data.response);
+                  speechSynthesis.speak(utterance);
+            } else {
+                console.error('No response from AI.');
+            }
         } catch (error) {
             console.error('Error fetching ChatGPT response:', error);
         }
