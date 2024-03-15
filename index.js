@@ -1,9 +1,6 @@
 require('dotenv').config({ path: './.env' });
 
-console.log(`Cohere API Key at startup: ${process.env.COHERE_API_KEY}`);
-
 const express = require('express');
-const axios = require('axios');
 const cors = require('cors');
 const app = express();
 const { CohereClient } = require('cohere-ai');
@@ -25,10 +22,11 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => {
-    res.send('Server is running. Use POST /chatgpt-response to interact with the API.');
+    res.send('Server is running.');
 });
 
-app.post('/chatgpt-response', async (req, res) => {
+// Cohere AI NLP endpoint
+app.post('/cohere-nlp', async (req, res) => {
     const userInput = req.body.prompt; // User's transcript from speech recognition
 
     try {
@@ -61,6 +59,35 @@ app.post('/chatgpt-response', async (req, res) => {
         res.status(500).json({ message: 'Error fetching response from Cohere' });
     }
 });
+
+// Elevenlabs Voice AI endpoint
+app.post('/elevenlabs-tts', async (req, res) => {
+    const { text } = req.body;
+    const options = {
+        method: 'POST',
+        headers: {
+            'xi-api-key': process.env.ELEVENLABS_API_KEY, 
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text: text })
+    };
+
+    try {
+        const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/8rJTFMI0r3ODtOWzmdEK', options);
+        if (!response.ok) {
+            // If the response is not OK, throw an error
+            throw new Error(`ElevenLabs API responded with ${response.status}: ${response.statusText}`);
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        res.type('audio/mpeg').send(buffer);
+    } catch (error) {
+        console.error('Error fetching TTS from ElevenLabs:', error);
+        res.status(500).json({ message: 'Error fetching TTS from ElevenLabs' });
+    }
+});
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
