@@ -74,6 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
             currentAudio = new Audio(audioURL);
             isAudioPlaying = true;
             currentAudio.play().then(() => {
+                replaceImageSources('/gif/moving.gif');
                 console.log('Audio playback started');
             }).catch(error => {
                 console.error('Playback failed', error);
@@ -86,6 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     console.log('No more audio in queue.');
                     setTimeout(() => {
+                       replaceImageSources('/gif/static.gif');
                        recognition.start();
                     }, 500); 
                 }
@@ -95,6 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Audio is currently playing, waiting for it to end...');
             } else {
                 console.log('Audio queue is empty, no playback initiated.');
+                replaceImageSources('/gif/static.gif');
             }
         }
     }
@@ -105,6 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     stopButton.addEventListener('click', () => {
+        replaceImageSources('/gif/static.gif');
         console.log('Stopped recognition');
         recognition.stop();
 
@@ -118,6 +122,15 @@ document.addEventListener('DOMContentLoaded', function() {
         audioQueue = [];
         console.log("Audio queue cleared.");
     });
+
+    function replaceImageSources(newSrc) {
+        const images = document.querySelectorAll('.static');
+
+        // Iterate over each image and update its src attribute
+        images.forEach(image => {
+            image.src = newSrc;
+        });
+    }
 
     initSpeechRecognition(); 
 });

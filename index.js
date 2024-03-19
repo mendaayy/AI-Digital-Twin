@@ -45,9 +45,10 @@ wss.on('connection', function connection(ws) {
                 maxTokens: 200,
                 connectors: []
             });
-
+ 
             for await (const chunk of chatStream) {
                 if (chunk.eventType === 'stream-end') {
+                    fullResponseText = chunk.response.text;
                     streamTTS(fullResponseText, ws);
                 }
             }
@@ -92,7 +93,6 @@ async function streamTTS(text, clientWs) {
             if (audioBuffer.length > 0) {
                 clientWs.send(audioBuffer); 
             }
-            
         } else {
             console.log('Received non-audio data:', message);
         }
