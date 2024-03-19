@@ -23,32 +23,32 @@ button {
     z-index: 1; 
 }
 
-.static {
+.gif {
     position: absolute;
     width: 30%; 
-    height: 30%; 
+    height: 40%; 
 }
 
 .top {
-    top: 5%;
+    top: 0;
     left: 35%;
     transform: rotate(0deg);
 }
 
 .right {
-    top: 35%;
+    top: 30%;
     right: 15%;
     transform: rotate(90deg);
 }
 
 .left {
-    bottom: 35%;
+    bottom: 30%;
     left: 15%;
     transform: rotate(270deg);
 }
 
 .bottom {
-    bottom: 5%;
+    bottom: 0;
     right: 35%;
     transform: rotate(180deg);
 }
