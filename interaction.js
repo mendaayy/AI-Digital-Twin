@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const ws = new WebSocket(wsUrl);
     let audioQueue = [];
     let isAudioPlaying = false;
+    let currentAudio = null;
     let recognition; 
 
     function startWebSocket() {
@@ -70,21 +71,23 @@ document.addEventListener('DOMContentLoaded', function() {
         if (audioQueue.length > 0 && !isAudioPlaying) {
             const audioBlob = audioQueue.shift();
             const audioURL = URL.createObjectURL(audioBlob);
-            const audio = new Audio(audioURL);
+            currentAudio = new Audio(audioURL);
             isAudioPlaying = true;
-            audio.play().then(() => {
+            currentAudio.play().then(() => {
                 console.log('Audio playback started');
             }).catch(error => {
                 console.error('Playback failed', error);
             });
-            audio.onended = () => {
+            currentAudio.onended = () => {
                 console.log('Audio playback ended');
                 isAudioPlaying = false;
                 if (audioQueue.length > 0) {
                     playAudioFromQueue();
                 } else {
                     console.log('No more audio in queue.');
-                    talkButton.click(); // Automatically start listening again after the queue is empty
+                    setTimeout(() => {
+                       recognition.start();
+                    }, 500); 
                 }
             };
         } else {
@@ -97,12 +100,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     talkButton.addEventListener('click', () => {
+        console.log('Talk button clicked, initializing...');
         recognition.start();
     });
 
     stopButton.addEventListener('click', () => {
         console.log('Stopped recognition');
-        recognition.start();
+        recognition.stop();
+
+        if (isAudioPlaying && currentAudio) {
+            currentAudio.pause(); 
+            currentAudio.currentTime = 0; 
+            isAudioPlaying = false; 
+            console.log("Audio playback stopped.");
+        }
+    
+        audioQueue = [];
+        console.log("Audio queue cleared.");
     });
 
     initSpeechRecognition(); 
