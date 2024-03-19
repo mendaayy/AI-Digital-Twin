@@ -4,13 +4,17 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 const cors = require('cors');
-const { CohereClient } = require('cohere-ai');
 
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+const { CohereClient } = require('cohere-ai');
 const cohere = new CohereClient({
     token: process.env.COHERE_API_KEY,
 });
 
-const systemMessage = `You are a person and not an AI chatbot being displayed in a hologram at an event and are named Jane who is very social 
+const systemMessage = `You are a real life person and not an AI chatbot being displayed in a hologram at an event and are named Steph who is very social 
 and friendly and breaks the ice with the users. Afterwards, you introduce yourself as a researcher part of the Center of Expertise High Tech Systems & Materials (CoE HTSM) 
 and the Knowledge Center Applied AI for Society (KC AI). You inform and inspire the users in a fun way what your department does and answer any 
 questions they might have. Your department does applied research on Enabling technologies which are innovative technologies that have the p
@@ -18,10 +22,6 @@ otential to bring about radical changes in society, such as AI, Autonomous robot
 Your department focuses on exploring application possibilities, identifying and addressing challenges that arise during application/translation 
 into practice, landing the new technology in the professional practice, focusing on awareness, acceptance, adoption, and assistance in initial 
 steps towards implementation.`;
-
-const app = express();
-app.use(cors());
-app.use(express.json());
 
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
@@ -46,15 +46,70 @@ wss.on('connection', function connection(ws) {
             });
 
             for await (const chunk of chatStream) {
-                if (chunk.eventType === "text-generation" && chunk.text) {
-                    ws.send(chunk.text);
+                if (chunk.eventType === 'stream-end') {
+                    streamTTS(fullResponseText, ws);
                 }
             }
+
         } catch (error) {
-            console.error(`Error fetching response from Cohere: ${error}`);
-            ws.send('Error fetching response from Cohere');
+            console.error(`Error: ${error}`);
+            ws.send('Error processing request');
         }
     });
+});
+
+
+async function streamTTS(text, clientWs) {
+    console.log('Attempting to connect to ElevenLabs...');
+    const elevenLabsWsUrl = `wss://api.elevenlabs.io/v1/text-to-speech/8rJTFMI0r3ODtOWzmdEK/stream-input?model_id=eleven_multilingual_v2`;
+
+    const elevenLabsWs = new WebSocket(elevenLabsWsUrl);
+
+    elevenLabsWs.on('open', () => {
+        console.log('Connected to ElevenLabs, sending text:', text);
+        elevenLabsWs.send(JSON.stringify({
+            text: text + " ", 
+            xi_api_key: process.env.ELEVENLABS_API_KEY,
+            voice_settings: {
+                stability: 0.8,
+                similarity_boost: 0.8,
+                style: 0.5
+            },
+            generation_config: {
+                chunk_length_schedule: [120, 160, 250, 290]
+            },
+            flush: true 
+        }));
+    });
+
+    elevenLabsWs.on('message', (data) => {
+        console.log('Received message from ElevenLabs');
+        const message = JSON.parse(data);
+        if (message.audio) {
+            console.log('Received audio data');
+            const audioBuffer = Buffer.from(message.audio, 'base64');
+            if (audioBuffer.length > 0) {
+                clientWs.send(audioBuffer); 
+            }
+            
+        } else {
+            console.log('Received non-audio data:', message);
+        }
+
+        // End TTS 
+        if (message.isFinal || message.type === 'stream-end') {
+            console.log('Stream complete, closing connection to ElevenLabs');
+            elevenLabsWs.send(JSON.stringify({ text: "" }));
+        }
+    });
+
+    elevenLabsWs.on('error', (error) => {
+        console.error('WebSocket error with ElevenLabs:', error.message);
+    });
+}
+
+wss.on('connection', function connection(ws) {
+    console.log('Client connected, starting TTS stream...');
 });
 
 app.get('/', (req, res) => {
@@ -65,69 +120,3 @@ server.listen(process.env.PORT || 3000, () => {
     console.log(`Server running on http://localhost:${process.env.PORT || 3000}`);
 });
 
-
-
-// Cohere AI NLP endpoint
-// app.post('/cohere-nlp', async (req, res) => {
-//     const userInput = req.body.prompt; // User's transcript from speech recognition
-
-//     try {
-//         // Start a chatStream with the user input 
-//         const chatStream = await cohere.chatStream({
-//             model: 'command-r', 
-//             chatHistory: [
-//                 { role: "CHATBOT", message: systemMessage }
-//             ],
-//             message: userInput,
-//             stream: true,
-//             promptTruncation: "AUTO",
-//             citationQuality: "accurate",
-//             connectors: []
-//         })
-
-//         // Listen for messages in the chat stream
-//         let aiResponse = '';
-//         for await (const message of chatStream) {
-//             if (message.eventType === "text-generation" && message.text) {
-//                 console.log(message);
-//                 process.stdout.write(message.text); 
-//                 aiResponse += message.text; 
-//             }
-//         }
-
-//         // Send the final AI response back to the client
-//         res.json({ response: aiResponse.trim() });
-
-//     } catch (error) {
-//         console.error(`Error fetching response from Cohere: ${error}`);
-//         res.status(500).json({ message: 'Error fetching response from Cohere' });
-//     }
-// });
-
-// Elevenlabs Voice AI endpoint
-// app.post('/elevenlabs-tts', async (req, res) => {
-//     const { text } = req.body;
-//     const options = {
-//         method: 'POST',
-//         headers: {
-//             'xi-api-key': process.env.ELEVENLABS_API_KEY, 
-//             'Content-Type': 'application/json'
-//         },
-//         body: JSON.stringify({ text: text })
-//     };
-
-//     try {
-//         const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/8rJTFMI0r3ODtOWzmdEK', options);
-//         if (!response.ok) {
-//             // If the response is not OK, throw an error
-//             throw new Error(`ElevenLabs API responded with ${response.status}: ${response.statusText}`);
-//         }
-
-//         const arrayBuffer = await response.arrayBuffer();
-//         const buffer = Buffer.from(arrayBuffer);
-//         res.type('audio/mpeg').send(buffer);
-//     } catch (error) {
-//         console.error('Error fetching TTS from ElevenLabs:', error);
-//         res.status(500).json({ message: 'Error fetching TTS from ElevenLabs' });
-//     }
-// });
