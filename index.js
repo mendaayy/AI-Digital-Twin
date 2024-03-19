@@ -9,11 +9,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Cohere AI NLP API websocket
 const { CohereClient } = require('cohere-ai');
 const cohere = new CohereClient({
     token: process.env.COHERE_API_KEY,
 });
 
+// Chatbot
 const systemMessage = `You are a person and not an AI chatbot being displayed in a hologram at an event and are named Steph who is very social 
 and friendly. You first start off with getting to know the user. Afterwards, you introduce yourself as a researcher part of the Center of Expertise High Tech Systems & Materials (CoE HTSM) 
 and the Knowledge Center Applied AI for Society (KC AI). You inform and inspire the users in a fun way what your department does and answer any 
@@ -26,7 +28,6 @@ steps towards implementation.`;
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-
 wss.on('connection', function connection(ws) {
     ws.on('message', async (message) => {
         try {
@@ -34,7 +35,7 @@ wss.on('connection', function connection(ws) {
             const messageText = message.toString('utf8');
             console.log("Received message text:", messageText);
 
-
+            // Cohere API NLP 
             const chatStream = await cohere.chatStream({
                 model: 'command-r', 
                 chatHistory: [{ role: "CHATBOT", message: systemMessage }],
@@ -46,8 +47,10 @@ wss.on('connection', function connection(ws) {
                 connectors: []
             });
  
+            // Streamed response
             for await (const chunk of chatStream) {
                 if (chunk.eventType === 'stream-end') {
+                    // Full text (all chunks combined)
                     fullResponseText = chunk.response.text;
                     streamTTS(fullResponseText, ws);
                 }
@@ -62,13 +65,16 @@ wss.on('connection', function connection(ws) {
 
 
 async function streamTTS(text, clientWs) {
+    // Elevenlabs TTS API Websocket
     console.log('Attempting to connect to ElevenLabs...');
     const elevenLabsWsUrl = `wss://api.elevenlabs.io/v1/text-to-speech/8rJTFMI0r3ODtOWzmdEK/stream-input?model_id=eleven_multilingual_v2`;
-
     const elevenLabsWs = new WebSocket(elevenLabsWsUrl);
 
     elevenLabsWs.on('open', () => {
+        // Text = response from Cohere AI NLP
         console.log('Connected to ElevenLabs, sending text:', text);
+
+        // TTS API
         elevenLabsWs.send(JSON.stringify({
             text: text + " ", 
             xi_api_key: process.env.ELEVENLABS_API_KEY,
@@ -87,6 +93,8 @@ async function streamTTS(text, clientWs) {
     elevenLabsWs.on('message', (data) => {
         console.log('Received message from ElevenLabs');
         const message = JSON.parse(data);
+
+        // Audio data chunks
         if (message.audio) {
             console.log('Received audio data');
             const audioBuffer = Buffer.from(message.audio, 'base64');
@@ -94,7 +102,9 @@ async function streamTTS(text, clientWs) {
                 clientWs.send(audioBuffer); 
             }
         } else {
+            // End of TTS
             console.log('Received non-audio data:', message);
+            clientWs.send(JSON.stringify(message));
         }
 
         // End TTS 
