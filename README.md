@@ -22,14 +22,15 @@ Hologram aims to create an interactive and engaging way for users to learn about
 **Functional Requirements**
 
 1. **Speech Recognition Accuracy**
-   - The STT system should accurately convert spoken language into text with at least 95% accuracy.
+- [x]    - The STT system should accurately convert spoken language into text with at least 95% accuracy.
 
-2. **Natural Language Understanding**
-   - The NLP system should understand and interpret user queries with at least 90% accuracy in context comprehension.
-   - The system should be able to handle diverse and complex questions about enabling technologies.
+ 2. **Natural Language Understanding**
+- [x]    - The NLP system should understand and interpret user queries with at least 90% accuracy in context comprehension.
+- [x]    - The system should be able to handle diverse and complex questions about enabling technologies.
 
 3. **Voice Cloning Authenticity**
-   - The TTS system should replicate Steph's voice accurately, maintaining a natural and consistent tone.
+- [x]    - The TTS system should replicate Steph's voice accurately, maintaining a natural and consistent tone.
+
 
 
 ## Getting Started
