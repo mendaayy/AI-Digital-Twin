@@ -17,6 +17,21 @@ Hologram aims to create an interactive and engaging way for users to learn about
 - **Cohere AI (NLP)**: [Cohere API Documentation](https://docs.cohere.ai/)
 - **Elevenlabs AI (TTS)**: [Elevenlabs API Documentation](https://api.elevenlabs.io/docs)
 
+## Success Criteria for the Hologram Project
+
+**Functional Requirements**
+
+1. **Speech Recognition Accuracy**
+   - The STT system should accurately convert spoken language into text with at least 95% accuracy.
+
+2. **Natural Language Understanding**
+   - The NLP system should understand and interpret user queries with at least 90% accuracy in context comprehension.
+   - The system should be able to handle diverse and complex questions about enabling technologies.
+
+3. **Voice Cloning Authenticity**
+   - The TTS system should replicate Steph's voice accurately, maintaining a natural and consistent tone.
+
+
 ## Getting Started
 
 ### Prerequisites
