@@ -1,10 +1,12 @@
 # Hologram
 
-This is a project that features an AI digital twin of Steph, a classmate, who answers people's questions about enabling technologies. The system uses Speech-to-Text (STT), Natural Language Processing (NLP) with Cohere AI, and Text-to-Speech (TTS) with Elevenlabs AI to clone Steph's voice, providing a seamless user interaction and conversation experience.
+This is a proof-of-concept project that features an AI-powered digital twin of Steph, the "digital twin" of a classmate, who answers people's questions about enabling technologies, through a DIY hologram. Four symmetrically opposite variations of the same image (Steph's face) are projected on to the four faces of the pyramid. Each side projects the image falling on it, to the centre of the pyramid and these 4 projections combined form a whole figure which creates a 3D face (hologram effect).
+
+The system uses Speech-to-Text (STT), Natural Language Processing (NLP) with Cohere AI, and Text-to-Speech (TTS) with Elevenlabs AI to clone Steph's voice, providing a seamless user interaction and conversation experience.
 
 ## Why Hologram?
 
-Hologram aims to create an interactive and engaging way for users to learn about enabling technologies through conversational AI. By cloning a real person's voice and persona, the experience feels more personal and relatable.
+Hologram aims to create an interactive and engaging way for users to learn about enabling technologies through conversational AI. By cloning a real person's voice and persona, the experience feels more personal and relatable. 
 
 ## Technologies Used
 
@@ -31,6 +33,17 @@ Hologram aims to create an interactive and engaging way for users to learn about
 3. **Voice Cloning Authenticity**
 - [x]    - The TTS system should replicate Steph's voice accurately, maintaining a natural and consistent tone.
 
+## Prototype
+
+### AI interaction
+[Watch video](https://youtu.be/1jVsZG4VzpI) <br>
+[Watch video](https://youtu.be/jeD3M-X2yqA) 
+
+### Hologram DIY
+[Watch video](https://youtu.be/WaS2ytwNQ6Q)
+
+### Final Prototype
+[Watch video](https://youtube.com/shorts/g_JOjYQ3pRk?feature=share")
 
 
 ## Getting Started
